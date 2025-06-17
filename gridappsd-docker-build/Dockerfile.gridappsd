@@ -1,0 +1,126 @@
+# FROM gridappsd/gridappsd_base:release_psupdxpwrlab
+
+# ENV GRIDAPPSD=/gridappsd
+# ENV TEMP_DIR=/tmp/source
+
+# # Install necessary tools
+# RUN apt-get update && \
+#     apt-get install -y python3-pip && \
+#     rm -rf /var/lib/apt/lists/*
+
+# # Clone GridAPPS-D and copy applications/services
+# RUN mkdir -p ${TEMP_DIR} && \
+#     cd ${TEMP_DIR} && \
+#     git clone --recurse-submodules https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b releases/2023.07.0 --single-branch && \
+#     mkdir -p ${GRIDAPPSD}/applications ${GRIDAPPSD}/services && \
+#     cp -R ${TEMP_DIR}/GOSS-GridAPPS-D/applications ${GRIDAPPSD}/ && \
+#     cp -R ${TEMP_DIR}/GOSS-GridAPPS-D/services ${GRIDAPPSD}/ && \
+#     if [ -f ${GRIDAPPSD}/services/fncsgossbridge/requirements.txt ]; then \
+#         pip install -r ${GRIDAPPSD}/services/fncsgossbridge/requirements.txt; \
+#     else \
+#         echo "WARNING: requirements.txt not found in fncsgossbridge. Skipping pip install."; \
+#     fi && \
+#     cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
+#     ./gradlew export && \
+#     cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+#     rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D && \
+#     rm -rf /var/cache/apt/archives/* && \
+#     rm -rf /root/.cache/pip/wheels
+
+# COPY ./gridappsd.run.sh /gridappsd/gridappsd.run.sh
+# RUN chmod +x /gridappsd/gridappsd.run.sh
+# COPY ./entrypoint.sh /gridappsd/entrypoint.sh
+# RUN chmod +x /gridappsd/entrypoint.sh
+
+
+# # Set working directory and entrypoint
+# WORKDIR /gridappsd
+# ENTRYPOINT ["/gridappsd/entrypoint.sh"]
+# CMD ["gridappsd"]
+
+# # Expose ports
+# EXPOSE 61613 61614 61616
+
+
+
+
+
+FROM gridappsd/gridappsd_base:release_psupdxpwrlab
+
+ENV GRIDAPPSD=/gridappsd
+ENV TEMP_DIR=/tmp/source
+
+# Install necessary tools
+RUN apt-get update && \
+    apt-get install -y python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone GridAPPS-D and copy applications/services
+RUN mkdir -p ${TEMP_DIR} && \
+    cd ${TEMP_DIR} && \
+    git clone --recurse-submodules https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b releases/2023.07.0 --single-branch && \
+    mkdir -p ${GRIDAPPSD}/applications ${GRIDAPPSD}/services && \
+    cp -R ${TEMP_DIR}/GOSS-GridAPPS-D/applications ${GRIDAPPSD}/ && \
+    cp -R ${TEMP_DIR}/GOSS-GridAPPS-D/services ${GRIDAPPSD}/ && \
+    cp -R ${TEMP_DIR}/GOSS-GridAPPS-D/gov.pnnl.goss.gridappsd/conf ${GRIDAPPSD}/ && \
+    cp ${TEMP_DIR}/GOSS-GridAPPS-D/run-gridappsd.sh ${GRIDAPPSD}/ && \
+    chmod +x ${GRIDAPPSD}/run-gridappsd.sh && \
+    ln -s run-gridappsd.sh ${GRIDAPPSD}/run-docker.sh && \
+    echo "psupdxpwrlab-dev" > ${GRIDAPPSD}/dockerbuildversion.txt && \
+    mkdir -p ${GRIDAPPSD}/log && \
+    chown -R root:root ${GRIDAPPSD}/log && \
+    if [ -f ${GRIDAPPSD}/services/fncsgossbridge/requirements.txt ]; then \
+        pip install -r ${GRIDAPPSD}/services/fncsgossbridge/requirements.txt; \
+    else \
+        echo "WARNING: requirements.txt not found in fncsgossbridge. Skipping pip install."; \
+    fi && \
+    cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
+    ./gradlew export && \
+    cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+    rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D && \
+    rm -rf /var/cache/apt/archives/* && \
+    rm -rf /root/.cache/pip/wheels
+
+COPY ./entrypoint.sh /gridappsd/entrypoint.sh
+RUN chmod +x /gridappsd/entrypoint.sh
+
+WORKDIR /gridappsd
+ENTRYPOINT ["/gridappsd/entrypoint.sh"]
+CMD ["gridappsd"]
+
+EXPOSE 61613 61614 61616
+
+
+# ARG GRIDAPPSD_VERSION_LABEL=:release_psupdxpwrlab
+
+# FROM gridappsd/gridappsd_base${GRIDAPPSD_VERSION_LABEL}
+
+# RUN apt-get update && \
+#   apt-get install -y python3-pip && \
+#   mkdir -p ${TEMP_DIR} && \
+#   cd ${TEMP_DIR} && \
+#   git clone https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b develop --single-branch && \
+#   cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
+#   cp ./applications /gridappsd/applications -R && \
+#   cp ./services /gridappsd/services -R && \
+#   pip install -r /gridappsd/services/fncsgossbridge/requirements.txt && \
+#   ./gradlew export && \
+#   cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+#   rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D && \
+#   rm -rf /var/cache/apt/archives/* && \
+#   rm -rf /root/.cache/pip/wheels
+
+# COPY ./gridappsd.run.sh /gridappsd/gridappsd.run.sh
+# RUN chmod +x /gridappsd/gridappsd.run.sh
+
+# # Uncomment the following to have debug tools in the image
+# # RUN apt-get update && apt-get install -y net-tools vim
+
+# VOLUME /gridappsd/conf /tmp/gridappsd/log
+
+# # Should match what is in conf/pnnl.goss.core.server.cfg and
+# # conf/pnnl.goss.core.client.cfg
+# EXPOSE 61616 61613 61614
+
+# WORKDIR /gridappsd
+# # CMD ["./gridappsd.run.sh"]

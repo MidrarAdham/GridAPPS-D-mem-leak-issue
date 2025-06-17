@@ -1,0 +1,38 @@
+FROM fncs/fncs_base
+
+RUN apt-get update
+RUN apt-get install autoconf -y
+
+ENV TEMP_DIR=/tmp/gridlabd
+ENV GLD_INSTALL=${FNCS_INSTALL}
+
+WORKDIR ${TEMP_DIR}
+
+#RUN printenv
+
+RUN git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch
+
+WORKDIR ${TEMP_DIR}/gridlab-d/third_party
+
+RUN tar -xzf xerces-c-3.1.1.tar.gz
+WORKDIR ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.1.1
+RUN ./configure
+RUN make
+RUN make install
+
+WORKDIR ${TEMP_DIR}/gridlab-d
+
+RUN autoreconf -if
+RUN ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O0 -w' 'CXXFLAGS=-g -O0 -w' 'LDFLAGS=-g -O0 -w'
+RUN make
+RUN make install
+
+#export PATH=$PATH:$GLD_INSTALL/bin 
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${FNCS_INSTALL}/lib
+ENV GLPATH=${GLD_INSTALL}/lib/gridlabd:${GLD_INSTALL}/share/gridlabd
+ENV CXXFLAGS=${CXXFLAGS}:${GLD_INSTALL}/share/gridlabd 
+
+RUN rm ${TEMP_DIR} -rf
+RUN unset TEMP_DIR
+
+WORKDIR /data

@@ -1,0 +1,45 @@
+FROM debian:jessie
+
+RUN apt-get update \
+    && apt-get install -y \
+       wget \
+       git \
+       automake \
+       autoconf \
+       make \
+       g++ \
+       gcc \
+       libtool \
+       ca-certificates \
+       openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV FNCS_INSTALL=/fncs
+ENV CZMQ_VERSION 3.0.2
+ENV ZMQ_VERSION 4.0.2
+ENV TEMP_DIR=/tmp/fncs
+
+RUN mkdir ${TEMP_DIR} \
+    && cd ${TEMP_DIR} \
+    && wget http://download.zeromq.org/zeromq-${ZMQ_VERSION}.tar.gz \
+    && tar -xzf zeromq-${ZMQ_VERSION}.tar.gz \
+    && cd ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
+    && ./configure --prefix=${FNCS_INSTALL} \
+    && make \
+    && make install \
+    && cd /tmp \
+    && /bin/rm -r ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
+    && /bin/rm ${TEMP_DIR}/zeromq-${ZMQ_VERSION}.tar.gz
+
+RUN cd ${TEMP_DIR} \
+    && wget https://archive.org/download/zeromq_czmq_${CZMQ_VERSION}/czmq-${CZMQ_VERSION}.tar.gz \
+    && tar -xzf czmq-${CZMQ_VERSION}.tar.gz \
+    && cd ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
+    && ./configure --prefix=${FNCS_INSTALL} --with-libzmq=${FNCS_INSTALL} \
+    && make \
+    && make install \
+    && cd /tmp \
+    && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
+    && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
+
+WORKDIR ${FNCS_INSTALL}

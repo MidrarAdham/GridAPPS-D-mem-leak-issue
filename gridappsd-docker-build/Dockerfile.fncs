@@ -1,0 +1,20 @@
+FROM gridappsd/zeromq
+
+ENV FNCS_PORT=5570
+ENV FNCS_LOG_FILE=yes
+ENV FNCS_LOG_STDOUT=yes
+ENV FNCS_LOG_TRACE=yes
+ENV FNCS_LOG_LEVEL=DEBUG4
+ENV FNCS_BROKER=tcp://*:${FNCS_PORT}
+
+RUN cd $TEMP_DIR \
+    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
+    && LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib \
+    && cd fncs \
+    && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
+    && make \
+    && make install \
+    && cd /tmp \
+    && /bin/rm -r ${TEMP_DIR}/fncs
+
+EXPOSE ${FNCS_PORT}

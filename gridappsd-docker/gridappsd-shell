@@ -1,0 +1,7 @@
+
+if [ $# -eq 1 ]; then
+  docker exec -u $1 -it gridappsd /bin/bash
+else
+  docker exec -it gridappsd /bin/bash
+fi
+

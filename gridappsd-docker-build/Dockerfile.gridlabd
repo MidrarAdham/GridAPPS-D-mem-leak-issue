@@ -1,0 +1,5 @@
+FROM gridappsd/gridlabd_base
+
+#ENV GLD_INSTALL=${FNCS_INSTALL}
+RUN printenv
+RUN echo $FNCS_INSTALL

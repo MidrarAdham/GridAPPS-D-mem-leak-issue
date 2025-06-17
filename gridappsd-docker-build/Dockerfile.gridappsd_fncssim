@@ -1,0 +1,8 @@
+FROM gridappsd/gridappsd_base:rc2
+
+COPY ./fncs-startup.sh /
+
+RUN chmod +x /fncs-startup.sh
+RUN pwd
+ENTRYPOINT ["/fncs-startup.sh"]
+#CMD ["ls", "-la"]

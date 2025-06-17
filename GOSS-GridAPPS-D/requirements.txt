@@ -1,0 +1,6 @@
+# Base requirements to work with the message bus and debugging
+# of python applications.
+remote_pdb
+durable-rules
+gridappsd-python
+gridappsd-field-bus

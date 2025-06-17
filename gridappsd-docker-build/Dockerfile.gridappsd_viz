@@ -1,0 +1,32 @@
+FROM node:18-bullseye
+WORKDIR /viz
+ARG REPO=GRIDAPPSD/viz
+ARG BRANCH=master
+ARG ARCHIVE_FILE=$BRANCH.zip
+
+# Download and extract the source code
+RUN wget --no-check-certificate -O $ARCHIVE_FILE https://github.com/$REPO/archive/$ARCHIVE_FILE
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+RUN unzip $ARCHIVE_FILE
+RUN mv gridappsd-viz-$BRANCH viz
+
+# Install global dependencies
+RUN npm install -g typescript webpack webpack-cli
+
+WORKDIR /viz/viz
+
+# Install root dependencies
+RUN npm install
+
+# Build client application
+WORKDIR /viz/viz/client
+RUN npm install
+RUN npx webpack --config webpack.production.config.js --mode=production
+
+# Go back to root for startup
+WORKDIR /viz/viz
+
+ENV VIZ_PORT=8082
+ENV PORT=${VIZ_PORT}
+EXPOSE ${VIZ_PORT}
+CMD ["npm", "start"]
